@@ -1,0 +1,259 @@
+/* ============================================
+   Notifications Page - Enhanced Tailwind Styling
+   ============================================ */
+
+/* Force CSS to load - Test class */
+.notifications-page-loaded {
+  /* This ensures CSS file is loaded */
+}
+
+/* Ensure page background covers full area */
+.notifications-page-wrapper {
+  width: 100%;
+  min-height: calc(100vh - 64px);
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 30%, #e0e7ff 100%);
+}
+
+/* Custom animations for notifications */
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
+}
+
+/* Notification card animations */
+.animate-slide-up {
+  animation: slide-up-fade 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Enhanced hover effects for notification cards */
+.notification-card-enhanced {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-card-enhanced:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Unread notification pulse effect */
+.unread-pulse {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Mobile-first responsive adjustments */
+@media (max-width: 640px) {
+  .notification-card-enhanced {
+    border-radius: 0.75rem;
+  }
+}
+
+/* Smooth scroll for notification list */
+.notifications-list-container {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for notification list */
+.notifications-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notifications-list-container::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 9999px;
+}
+
+.notifications-list-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+
+.notifications-list-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Button hover effects */
+.btn-mark-read {
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.btn-mark-read:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-clear-all {
+  transition: all 0.3s ease;
+}
+
+.btn-clear-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Settings toggle switch enhancement */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-switch-active {
+  background-color: #10b981;
+}
+
+.toggle-switch-inactive {
+  background-color: #d1d5db;
+}
+
+/* Mobile push preview card enhancement */
+.push-preview-card {
+  transition: transform 0.3s ease;
+}
+
+.push-preview-card:hover {
+  transform: scale(1.02);
+}
+
+/* Statistics card hover effect */
+.stats-card-item {
+  transition: all 0.2s ease;
+}
+
+.stats-card-item:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-color: #d1d5db;
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(to right, #1f2937, #4b5563);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Priority badge animations */
+.priority-badge {
+  transition: all 0.2s ease;
+}
+
+.priority-badge:hover {
+  transform: scale(1.05);
+}
+
+/* Icon container hover effect */
+.icon-container {
+  transition: transform 0.3s ease;
+}
+
+.icon-container:hover {
+  transform: scale(1.1);
+}
+
+/* Loading state for notifications */
+.notification-skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #e5e7eb;
+  border-radius: 0.75rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Empty state styling */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-state-icon {
+  margin: 0 auto 1rem;
+  color: #9ca3af;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  .notification-title {
+    font-size: 1rem;
+  }
+  
+  .notification-message {
+    font-size: 0.875rem;
+  }
+}
+
+/* Focus states for accessibility */
+.notification-card-enhanced:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Print styles */
+@media print {
+  .notifications-page-wrapper {
+    background: white;
+  }
+  
+  .notification-card-enhanced {
+    box-shadow: none;
+    border: 1px solid #d1d5db;
+  }
+  
+  .header-actions,
+  .sidebar {
+    display: none;
+  }
+}

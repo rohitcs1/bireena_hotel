@@ -1,0 +1,388 @@
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { loginStart, loginSuccess, loginFailure } from '../redux/authSlice';
+import './Login.css';
+
+const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    role: '',
+    rememberMe: false
+  });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    // Role validation
+    if (!formData.role) {
+      newErrors.role = 'Please select a role';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Mock API call
+  // TODO: Replace with actual API call to /api/auth
+  // const loginUser = async (email, password, role) => {
+  //   const response = await fetch('/api/auth', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({ email, password, role }),
+  //   });
+  //   return response.json();
+  // };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      dispatch(loginStart());
+      
+      // Mock API call - simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Mock user data
+      const user = {
+        id: Math.floor(Math.random() * 1000),
+        email: formData.email,
+        name: formData.email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        role: formData.role,
+        avatar: formData.email.charAt(0).toUpperCase(),
+        token: `mock-token-${Date.now()}`
+      };
+
+      // Save to localStorage if remember me
+      if (formData.rememberMe) {
+        localStorage.setItem('kot-user', JSON.stringify(user));
+        localStorage.setItem('kot-token', user.token);
+      }
+
+      dispatch(loginSuccess(user));
+
+      // Show success toast
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
+
+      // Redirect based on role
+      const getRoleRedirect = (role) => {
+        switch (role) {
+          case 'Admin':
+            return '/dashboard';
+          case 'Waiter':
+            return '/pos';
+          case 'Kitchen':
+            return '/kds';
+          default:
+            return '/dashboard';
+        }
+      };
+
+      // Redirect to role-based homepage
+      setTimeout(() => {
+        navigate(getRoleRedirect(user.role));
+      }, 2000);
+
+    } catch (error) {
+      console.error('Login error:', error);
+      dispatch(loginFailure(error.message));
+      setErrors({ submit: 'Login failed. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle forgot password
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    alert('Forgot password functionality - Redirect to password reset page');
+    // In a real app: navigate('/forgot-password')
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-1/3 -left-1/3 w-2/3 h-2/3 bg-white/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      {/* Toast/Snackbar */}
+      {showToast && (
+        <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xl flex items-center gap-3 sm:gap-4 min-w-[280px] sm:min-w-[320px] max-w-[calc(100vw-2rem)] animate-toast-slide-in border border-white/20 backdrop-blur-sm">
+          <div className="flex-shrink-0">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6 animate-checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm sm:text-base mb-0.5">Login successful!</p>
+            <p className="text-xs sm:text-sm opacity-95 font-medium">Redirecting to dashboard...</p>
+          </div>
+          <button 
+            onClick={() => setShowToast(false)} 
+            className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/20 transition-all duration-200 hover:rotate-90 active:scale-95"
+            aria-label="Close notification"
+          >
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 p-6 sm:p-8 lg:p-10 animate-slide-up">
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl sm:rounded-3xl shadow-lg mb-4 sm:mb-6 mx-auto animate-float">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2 tracking-tight">
+            KOT System
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600 font-medium">Login to continue</p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+          {/* Email Input */}
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 tracking-wide">
+              Email Address
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                <svg className={`h-5 w-5 transition-colors duration-200 ${errors.email ? 'text-red-500' : 'text-gray-400 group-focus-within:text-indigo-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+              </div>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 ${
+                  errors.email 
+                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20' 
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-white focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                placeholder="you@example.com"
+                disabled={loading}
+              />
+            </div>
+            {errors.email && (
+              <p className="flex items-center gap-2 text-xs sm:text-sm text-red-600 font-medium animate-shake">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Password Input */}
+          <div className="space-y-2">
+            <label htmlFor="password" className="block text-sm font-semibold text-gray-700 tracking-wide">
+              Password
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                <svg className={`h-5 w-5 transition-colors duration-200 ${errors.password ? 'text-red-500' : 'text-gray-400 group-focus-within:text-indigo-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 text-sm sm:text-base border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 ${
+                  errors.password 
+                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20' 
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-white focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                placeholder="••••••••"
+                disabled={loading}
+              />
+            </div>
+            {errors.password && (
+              <p className="flex items-center gap-2 text-xs sm:text-sm text-red-600 font-medium animate-shake">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Role Dropdown */}
+          <div className="space-y-2">
+            <label htmlFor="role" className="block text-sm font-semibold text-gray-700 tracking-wide">
+              Select Role
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+                <svg className={`h-5 w-5 transition-colors duration-200 ${errors.role ? 'text-red-500' : 'text-gray-400 group-focus-within:text-indigo-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className={`w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-3.5 text-sm sm:text-base border-2 rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-opacity-20 appearance-none cursor-pointer ${
+                  errors.role 
+                    ? 'border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20' 
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-white focus:border-indigo-500 focus:bg-white focus:ring-indigo-500/20'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={loading}
+              >
+                <option value="">Select a role</option>
+                <option value="Waiter">Waiter</option>
+                <option value="Kitchen">Kitchen</option>
+                <option value="Admin">Admin</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center pointer-events-none">
+                <svg className={`h-5 w-5 transition-colors duration-200 ${errors.role ? 'text-red-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            {errors.role && (
+              <p className="flex items-center gap-2 text-xs sm:text-sm text-red-600 font-medium animate-shake">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.role}
+              </p>
+            )}
+          </div>
+
+          {/* Remember Me & Forgot Password */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pt-1">
+            <label className="flex items-center gap-2.5 cursor-pointer group hover:translate-x-0.5 transition-transform duration-200">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleChange}
+                  className="w-5 h-5 sm:w-5 sm:h-5 rounded-lg border-2 border-gray-300 bg-white appearance-none cursor-pointer transition-all duration-200 checked:bg-gradient-to-br checked:from-indigo-500 checked:to-purple-600 checked:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none hover:border-indigo-400 checked:hover:scale-110"
+                  disabled={loading}
+                />
+                {formData.rememberMe && (
+                  <svg className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none animate-checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span className="text-sm sm:text-base font-medium text-gray-700 select-none">Remember me</span>
+            </label>
+            <a
+              href="#"
+              onClick={handleForgotPassword}
+              className="text-sm sm:text-base font-semibold text-indigo-600 hover:text-purple-600 transition-colors duration-200 relative group"
+            >
+              Forgot password?
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </a>
+          </div>
+
+          {/* Submit Error */}
+          {errors.submit && (
+            <div className="flex items-center gap-2 p-3 sm:p-4 bg-red-50 border-2 border-red-200 rounded-xl text-red-700 animate-shake">
+              <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm sm:text-base font-medium">{errors.submit}</span>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 sm:py-4 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2.5 relative overflow-hidden group"
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-[3px] border-white/30 border-t-white rounded-full animate-spin"></div>
+                <span>Logging in...</span>
+              </>
+            ) : (
+              <>
+                <span>Login</span>
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+        </form>
+      </div>
+
+      {/* Footer */}
+      <p className="relative z-10 text-center mt-6 sm:mt-8 text-sm sm:text-base text-white/90 font-medium">
+        © 2024 KOT System. All rights reserved.
+      </p>
+    </div>
+  );
+};
+
+export default Login;
+
